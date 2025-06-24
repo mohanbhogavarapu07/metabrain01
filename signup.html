@@ -62,8 +62,7 @@
             <div class="login-form">
                 <h2>Sign Up</h2>
                 <p class="subtitle">Start your journey with powerful insights. Create your account & take the lead with data-driven action.</p>
-                
-                <form id="signupForm" onsubmit="handleSignup(event)">
+                <form id="signupForm">
                     <div class="form-row">
                         <div class="form-group">
                             <input type="text" id="name" placeholder="Name" required>
@@ -72,7 +71,6 @@
                             <input type="email" id="email" placeholder="Email" required>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <input type="text" id="company" placeholder="Company Name" required>
@@ -81,7 +79,6 @@
                             <input type="text" id="industry" placeholder="Industry" required>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group">
                             <input type="tel" id="contact" placeholder="Contact" required>
@@ -90,7 +87,6 @@
                             <input type="text" id="address" placeholder="Address" required>
                         </div>
                     </div>
-
                     <div class="form-row">
                         <div class="form-group password-group">
                             <input type="password" id="password" placeholder="Password" required>
@@ -105,10 +101,15 @@
                             </button>
                         </div>
                     </div>
-                    
+                    <div id="verificationSection" style="display:none; margin-top:20px;">
+                        <label for="verificationCode" style="font-size:14px; color:#575656; margin-bottom:6px; display:block;">Enter Verification Code</label>
+                        <input type="text" id="verificationCode" placeholder="Verification Code" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:5px;font-size:14px;box-sizing:border-box;margin-bottom:10px;height:40px;">
+                        <button id="verifyCodeBtn" class="sign-in-btn" style="margin-bottom:0;">Verify & Complete Sign Up</button>
+                        <div id="verificationErrorMsg" style="color:#d32f2f;margin:8px 0 0 0;font-weight:600;"></div>
+                    </div>
                     <button type="submit" class="sign-in-btn">Sign Up</button>
+                    <div id="signupErrorMsg" style="color:#d32f2f;margin:12px 0 0 0;font-weight:600;"></div>
                 </form>
-                
                 <p class="signup-prompt">
                     Already have an Account? <a href="login.html" class="sign-up-link">Sign In</a>
                 </p>
@@ -160,94 +161,150 @@
     </div>
 
     <script type="module">
-        import { createUser } from './userApi.js';
+        import { Clerk } from '@clerk/clerk-js';
 
-        // Store user credentials in localStorage
-        function storeUserCredentials(email, password) {
-            const credentials = {
-                email: email,
-                password: password
-            };
-            localStorage.setItem('userCredentials', JSON.stringify(credentials));
-        }
+        const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+        const clerk = new Clerk(publishableKey);
+        await clerk.load();
 
-        // Show notification
-        function showNotification(message, type = 'success') {
-            // Remove any existing notification
-            const existingNotification = document.querySelector('.notification');
-            if (existingNotification) {
-                existingNotification.remove();
-            }
+        const signupForm = document.getElementById('signupForm');
+        const errorMsg = document.getElementById('signupErrorMsg');
+        const verificationSection = document.getElementById('verificationSection');
+        const verificationCodeInput = document.getElementById('verificationCode');
+        const verifyCodeBtn = document.getElementById('verifyCodeBtn');
+        const verificationErrorMsg = document.getElementById('verificationErrorMsg');
 
-            // Create new notification
-            const notification = document.createElement('div');
-            notification.className = `notification ${type}`;
-            notification.textContent = message;
-            document.body.appendChild(notification);
+        // Helper: Validate fields and show errors
+        function validateFields() {
+            let valid = true;
+            let errors = {};
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const industry = document.getElementById('industry').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const address = document.getElementById('address').value.trim();
 
-            // Show notification
-            notification.style.display = 'block';
-
-            // Hide and remove notification after 3 seconds
-            setTimeout(() => {
-                notification.style.animation = 'slideOut 0.3s ease-out';
-                setTimeout(() => {
-                    notification.remove();
-                }, 300);
-            }, 3000);
-        }
-
-        window.handleSignup = async function(event) {
-            event.preventDefault();
-            
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            
-            // Check if passwords match
-            if (password !== confirmPassword) {
-                showNotification('Passwords do not match!', 'error');
-                return;
-            }
-
-            // Check password strength
-            if (password.length < 8) {
-                showNotification('Password must be at least 8 characters long!', 'error');
-                return;
-            }
-            
-            const userData = {
-                email: document.getElementById('email').value,
-                name: document.getElementById('name').value,
-                company: document.getElementById('company').value,
-                industry: document.getElementById('industry').value,
-                contact: document.getElementById('contact').value,
-                address: document.getElementById('address').value,
-                org_id: 'default_org', // Default organization ID
-                role: 'user' // Default role
-            };
-
-            try {
-                const response = await createUser(userData);
-                if (response) {
-                    // Store credentials for login
-                    storeUserCredentials(userData.email, password);
-                    showNotification('Account created successfully! Redirecting to login...');
-                    setTimeout(() => {
-                        window.location.href = 'login.html';
-                    }, 2000);
+            if (!name) { errors.name = 'Name is required'; valid = false; }
+            if (!email) { errors.email = 'Email is required'; valid = false; }
+            else if (!/\S+@\S+\.\S+/.test(email)) { errors.email = 'Email is invalid'; valid = false; }
+            if (!password) { errors.password = 'Password is required'; valid = false; }
+            else {
+                const pwReqs = [
+                    { regex: /.{8,}/, message: 'at least 8 characters' },
+                    { regex: /[A-Z]/, message: 'one uppercase letter' },
+                    { regex: /[a-z]/, message: 'one lowercase letter' },
+                    { regex: /[0-9]/, message: 'one number' },
+                    { regex: /[^A-Za-z0-9]/, message: 'one special character' }
+                ];
+                const failed = pwReqs.filter(r => !r.regex.test(password)).map(r => r.message);
+                if (failed.length > 0) {
+                    errors.password = 'Password must contain ' + failed.join(', ');
+                    valid = false;
                 }
-            } catch (error) {
-                showNotification('Error creating user: ' + error.message, 'error');
             }
-        };
+            if (password !== confirmPassword) { errors.confirmPassword = 'Passwords do not match'; valid = false; }
+            if (!company) { errors.company = 'Company name is required'; valid = false; }
+            if (!industry) { errors.industry = 'Industry is required'; valid = false; }
+            if (!contact) { errors.contact = 'Contact is required'; valid = false; }
+            if (!address) { errors.address = 'Address is required'; valid = false; }
+            return { valid, errors };
+        }
 
-        // Toggle password visibility for both password fields
-        document.querySelectorAll('.toggle-password').forEach(button => {
-            button.addEventListener('click', function() {
-                const passwordInput = this.previousElementSibling;
-                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-                passwordInput.setAttribute('type', type);
-            });
+        // Show error messages below each field
+        function showFieldErrors(errors) {
+            // Remove old errors
+            document.querySelectorAll('.field-error').forEach(e => e.remove());
+            for (const key in errors) {
+                const el = document.getElementById(key);
+                if (el) {
+                    const err = document.createElement('div');
+                    err.className = 'field-error';
+                    err.style.color = '#d32f2f';
+                    err.style.fontSize = '12px';
+                    err.style.marginTop = '2px';
+                    err.textContent = errors[key];
+                    el.parentNode.appendChild(err);
+                }
+            }
+        }
+
+        signupForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            errorMsg.textContent = '';
+            verificationErrorMsg.textContent = '';
+            verificationSection.style.display = 'none';
+            // Validate fields
+            const { valid, errors } = validateFields();
+            showFieldErrors(errors);
+            if (!valid) return;
+            // Collect all fields
+            const name = document.getElementById('name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const company = document.getElementById('company').value.trim();
+            const industry = document.getElementById('industry').value.trim();
+            const contact = document.getElementById('contact').value.trim();
+            const address = document.getElementById('address').value.trim();
+            try {
+                // 1. Create sign up with Clerk, passing extra fields as unsafeMetadata
+                const signUp = await clerk.client.signUp.create({
+                    emailAddress: email,
+                    password,
+                    unsafeMetadata: {
+                        name,
+                        company,
+                        industry,
+                        contact,
+                        address
+                    }
+                });
+                // 2. Set session and redirect
+                window.location.href = './main.html';
+            } catch (err) {
+                console.log('Signup error:', err);
+                errorMsg.textContent = err.errors?.[0]?.message || 'Signup error. Please try again.';
+            }
+        });
+
+        verifyCodeBtn.addEventListener('click', async (event) => {
+            event.preventDefault();
+            verificationErrorMsg.textContent = '';
+            const code = verificationCodeInput.value.trim();
+            if (!code) {
+                verificationErrorMsg.textContent = 'Please enter the verification code.';
+                return;
+            }
+            try {
+                // 4. Attempt verification
+                const result = await clerk.client.signUp.attemptEmailAddressVerification({ code });
+                if (result.status === 'complete') {
+                    await clerk.setSession(result.createdSessionId);
+                    window.location.href = './main.html';
+                } else {
+                    verificationErrorMsg.textContent = 'Verification not complete. Please check the code and try again.';
+                }
+            } catch (err) {
+                console.log('Verification error:', err);
+                // Handle 'already signed in' error
+                if (err.errors && err.errors[0] && err.errors[0].message && err.errors[0].message.includes("already signed in")) {
+                    verificationErrorMsg.innerHTML = 'You are already signed in with another account. <br>Please <button id="signOutBtn" style="color:#2185d0;text-decoration:underline;background:none;border:none;cursor:pointer;">Sign Out</button> and try again.';
+                    // Add sign out button handler
+                    setTimeout(() => {
+                        const btn = document.getElementById('signOutBtn');
+                        if (btn) {
+                            btn.onclick = async () => {
+                                await clerk.signOut();
+                                window.location.reload();
+                            };
+                        }
+                    }, 0);
+                } else {
+                    verificationErrorMsg.textContent = err.errors?.[0]?.message || 'Verification failed. Please try again.';
+                }
+            }
         });
     </script>
 </body>

@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaBrain Login</title>
     <link rel="stylesheet" href="login.css">
-    <!--clerk js sdk script-->
-    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <!-- Clerk authentication is now handled via npm in Vite. Remove any Clerk CDN/global code. -->
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -36,9 +35,9 @@
                 <button class="btn contact-sales-btn">Contact Sales Team</button>
             </div>
             <div class="action-twin-preview">
-                <img src="images1/home.png" alt="Metabrain Application Preview" class="navbar-image">
+                <img src="images/home.png" alt="Metabrain Application Preview" class="navbar-image">
                 <div class="navbar-overlay"></div>
-                <img src="images1/home1.png" alt="Metabrain Overlay Image" class="navbar-image1">
+                <img src="images/home1.png" alt="Metabrain Overlay Image" class="navbar-image1">
             </div>
         </div>
     </section>
@@ -86,7 +85,6 @@
     </section>
 
     <!-- Existing login content - initially hidden -->
-    <div id="clerk-widget-container"></div> <!-- Clerk will mount here -->
     <div class="login-container" id="loginContent">
         <!-- Left Section -->
         <div class="login-form-section">
@@ -97,21 +95,18 @@
             <div class="login-form">
                 <h2>Sign In</h2>
                 <p class="subtitle">Your gateway to smarter decisions. Log in to access insights that matter.</p>
-                
-                <form id="loginForm" onsubmit="handleLogin(event)">
+                <form id="loginForm">
                     <div class="form-group">
-                        <lable type="email" class="lable">Email</lable>
+                        <label for="email" class="lable">Email</label>
                         <input type="email" id="email" placeholder="Email" required>
                     </div>
-                    
                     <div class="form-group password-group">
-                        <lable type="Password" class="lable">Password</lable>
+                        <label for="password" class="lable">Password</label>
                         <input type="password" id="password" placeholder="Password" required>
                         <button type="button" class="toggle-password">
                             <img src="images/eye-icon.png" alt="Show/Hide Password">
                         </button>
                     </div>
-                    
                     <div class="form-options">
                         <label class="remember-me">
                             <input type="checkbox" id="remember">
@@ -119,12 +114,9 @@
                         </label>
                         <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
                     </div>
-                    
                     <button type="submit" class="sign-in-btn">Sign in</button>
+                    <div id="loginErrorMsg" style="color:#d32f2f;margin:12px 0 0 0;font-weight:600;"></div>
                 </form>
-                
-
-                
                 <p class="signup-prompt">
                     Not a member yet? <a href="signup.html" class="sign-up-link">Sign Up</a>
                 </p>
@@ -138,9 +130,9 @@
                 <p>Access powerful insights, track your sustainability goals, and take actionable steps toward a greener future.</p>
                 
 
-                <img src="images1/home.png" alt="Metabrain Application Preview" class="app-preview-image">
+                <img src="images/home.png" alt="Metabrain Application Preview" class="app-preview-image">
                 <div class="black-overlay"></div>
-                <img src="images1/home1.png" alt="Metabrain Overlay Image" class="app-overlay-image">
+                <img src="images/home1.png" alt="Metabrain Overlay Image" class="app-overlay-image">
                
             </div>
             
@@ -153,276 +145,6 @@
     
 
 
-    <script type="module">
-        import { getUserByEmail } from './userApi.js';
-
-        // Store user credentials in localStorage after successful signup
-        function storeUserCredentials(email, password) {
-            const credentials = {
-                email: email,
-                password: password
-            };
-            localStorage.setItem('userCredentials', JSON.stringify(credentials));
-        }
-
-        // Get stored user credentials
-        function getStoredCredentials() {
-            const credentials = localStorage.getItem('userCredentials');
-            return credentials ? JSON.parse(credentials) : null;
-        }
-
-        window.handleLogin = async function(event) {
-            event.preventDefault();
-            
-            const email = document.getElementById('email').value.trim();
-            const password = document.getElementById('password').value.trim();
-            let errorMsg = document.getElementById('loginErrorMsg');
-            
-            if (!errorMsg) {
-                errorMsg = document.createElement('div');
-                errorMsg.id = 'loginErrorMsg';
-                errorMsg.style.color = '#d32f2f';
-                errorMsg.style.margin = '12px 0 0 0';
-                errorMsg.style.fontWeight = '600';
-                document.getElementById('loginForm').appendChild(errorMsg);
-            }
-
-            if (!email || !password) {
-                errorMsg.textContent = 'Please enter both email and password.';
-                return;
-            }
-
-            try {
-                console.log('Attempting login with email:', email);
-                
-                // Get stored credentials
-                const storedCredentials = getStoredCredentials();
-                
-                // Check if credentials match
-                if (!storedCredentials || 
-                    storedCredentials.email !== email || 
-                    storedCredentials.password !== password) {
-                    errorMsg.textContent = 'Invalid email or password.';
-                    return;
-                }
-
-                // Get user by email
-                const response = await getUserByEmail(email);
-                console.log('Login response:', response);
-                
-                if (response && response.email === email) {
-                    // Store user data in session storage
-                    const userData = {
-                        id: response.id,
-                        email: response.email,
-                        name: response.name || email.split('@')[0],
-                        org_id: response.org_id || 'default_org',
-                        role: response.role || 'user'
-                    };
-                    
-                    console.log('Storing user data:', userData);
-                    sessionStorage.setItem('user', JSON.stringify(userData));
-                    
-                    // If remember me is checked, store in localStorage
-                    if (document.getElementById('remember').checked) {
-                        localStorage.setItem('user', JSON.stringify(userData));
-                    }
-                    
-                    // Redirect to main page
-                    window.location.href = './main.html';
-                } else {
-                    console.log('Invalid response format:', response);
-                    errorMsg.textContent = 'Invalid email or password.';
-                }
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                // Handle different types of errors
-                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                    errorMsg.textContent = 'Unable to connect to the server. Please try again later.';
-                } else if (error.response) {
-                    // Handle API error responses
-                    switch (error.response.status) {
-                        case 404:
-                            errorMsg.textContent = 'User not found. Please check your email.';
-                            break;
-                        case 401:
-                            errorMsg.textContent = 'Invalid email or password.';
-                            break;
-                        default:
-                            errorMsg.textContent = 'An error occurred. Please try again.';
-                    }
-                } else {
-                    errorMsg.textContent = 'Invalid email or password.';
-                }
-            }
-        };
-
-        // Toggle password visibility
-        document.querySelector('.toggle-password').addEventListener('click', function() {
-            const passwordInput = document.getElementById('password');
-            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
-            passwordInput.setAttribute('type', type);
-        });
-
-        // Check for stored credentials
-        window.addEventListener('load', function() {
-            const storedUser = localStorage.getItem('user');
-            if (storedUser) {
-                try {
-                    const user = JSON.parse(storedUser);
-                    if (user && user.email) {
-                        document.getElementById('email').value = user.email;
-                        document.getElementById('remember').checked = true;
-                    }
-                } catch (e) {
-                    console.error('Error parsing stored user data:', e);
-                    localStorage.removeItem('user');
-                }
-            }
-        });
-
-        // Add event listener for the Contact Sales Team button in the initial sections
-        document.querySelector('.contact-sales-btn').addEventListener('click', function() {
-            // Hide the login content (in case it was somehow visible - keep this line)
-            document.getElementById('loginContent').style.display = 'none';
-
-            // Show the Contact Sales modal
-            document.getElementById('contactSalesModal').style.display = 'flex'; // Use flex for centering
-
-            // Do NOT hide the initial sections or the navigation bar when showing the modal
-            // document.querySelector('.upgrade-experience-section').style.display = 'none'; // REMOVED
-            // document.querySelector('.ready-to-get-started-section').style.display = 'none'; // REMOVED
-            // document.querySelector('.feature-boxes-section').style.display = 'none'; // REMOVED
-            // document.querySelector('.top-nav').style.display = 'none'; // REMOVED as nav remains visible
-            // document.body.style.paddingTop = '0'; // REMOVED as nav remains visible
-        });
-
-        // Add event listeners for the modal buttons (Cancel and Contact Sales)
-        document.querySelector('#contactSalesModal .btn-cancel').addEventListener('click', function() {
-            // Hide the modal
-            document.getElementById('contactSalesModal').style.display = 'none';
-
-            // No need to show initial sections again here, as they were never hidden
-            // The navbar also remains visible as it was never hidden
-        });
-
-        document.querySelector('#contactSalesModal .btn-contact-sales').addEventListener('click', function() {
-            // Handle the Contact Sales form submission here
-            // For now, just log a message and hide the modal
-            console.log('Contact Sales button clicked!');
-            document.getElementById('contactSalesModal').style.display = 'none';
-            // You would typically collect form data and send it to your backend here
-        });
-
-
-        //clerk code
-        document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      await Clerk.load({
-        frontendApi: "pk_test_Y29zbWljLWNoaWNrZW4tNzMuY2xlcmsuYWNjb3VudHMuZGV2JA" // ✅ Wrap in quotes!
-      });
-
-      const clerk = Clerk._client;
-
-      // Log Clerk is ready
-      console.log("Clerk SDK loaded");
-
-      if (!clerk.user) {
-        console.log("No user logged in");
-
-        // Mount Clerk widget
-        const signIn = new Clerk.SignIn({
-          container: "#clerk-widget-container",
-          appearance: {
-            elements: {
-              formButtonPrimary: "sign-in-btn", // style to match your custom button
-            }
-          }
-        });
-        signIn.mount();
-      } else {
-        const container = document.getElementById("clerk-widget-container");
-        container.innerHTML = `
-          <p>Welcome, ${clerk.user.firstName || clerk.user.email}</p>
-          <button id="signOutBtn">Sign Out</button>
-        `;
-        document.getElementById("signOutBtn").addEventListener("click", () => {
-          clerk.signOut();
-          window.location.reload();
-        });
-      }
-
-    } catch (error) {
-      console.error("❌ Clerk load error:", error);
-    }
-  });
-
-        // Add event listener for clicking the logo or welcome text in the navbar
-        const navLogo = document.querySelector('.nav-logo');
-        const navWelcome = document.querySelector('.nav-welcome');
-        const upgradeSection = document.querySelector('.upgrade-experience-section');
-        const readySection = document.querySelector('.ready-to-get-started-section');
-        const featuresSection = document.querySelector('.feature-boxes-section');
-        const loginContent = document.getElementById('loginContent');
-        const contactSalesModal = document.getElementById('contactSalesModal');
-        const topNav = document.querySelector('.top-nav');
-
-        function showLoginForm() {
-            // Hide the initial sections
-            if (upgradeSection) upgradeSection.style.display = 'none';
-            if (readySection) readySection.style.display = 'none';
-            if (featuresSection) featuresSection.style.display = 'none';
-
-            // Hide the modal if it's open
-            if (contactSalesModal) contactSalesModal.style.display = 'none';
-
-            // Hide the navigation bar
-            if (topNav) topNav.style.display = 'none';
-
-            // Show the login content
-            if (loginContent) loginContent.style.display = 'flex'; // Assuming it uses flex display
-
-             // Adjust body padding for when the nav is hidden for the login form
-             document.body.style.paddingTop = '0';
-        }
-
-        // Function to show the initial upgrade page content and navbar
-        function showUpgradePage() {
-             // Show the initial sections
-            if (upgradeSection) upgradeSection.style.display = 'block'; // Assuming block or similar display
-            if (readySection) readySection.style.display = 'flex'; // Assuming flex display
-            if (featuresSection) featuresSection.style.display = 'block'; // Assuming block or similar display
-
-            // Hide the login content
-            if (loginContent) loginContent.style.display = 'none';
-
-             // Hide the modal if it's open
-            if (contactSalesModal) contactSalesModal.style.display = 'none';
-
-            // Show the navigation bar
-            if (topNav) topNav.style.display = 'flex'; // Assuming flex display for navbar
-
-             // Adjust body padding to account for the fixed nav
-             // You might need to fine-tune this value based on the actual height of your top-nav
-            document.body.style.paddingTop = '61px'; // Example padding (nav height + border)
-        }
-
-
-        if (navLogo) {
-            navLogo.style.cursor = 'pointer'; // Indicate that it's clickable
-            navLogo.addEventListener('click', showLoginForm);
-        }
-
-        if (navWelcome) {
-            navWelcome.style.cursor = 'pointer'; // Indicate that it's clickable
-            navWelcome.addEventListener('click', showLoginForm);
-        }
-
-        // Call showUpgradePage on initial page load to ensure correct state
-        window.addEventListener('load', showUpgradePage);
-
-    </script>
 
     <!-- Contact Sales Modal -->
     <div id="contactSalesModal" class="modal" style="display: none;">
@@ -447,5 +169,228 @@
         </div>
     </div>
 
+    <!-- Clerk widget container -->
+    <!-- <div id="clerk-widget-container"></div> -->
+
+    <script>
+    // Clerk and login logic moved to plain script to avoid import/module issues
+    // Store user credentials in localStorage after successful signup
+    function storeUserCredentials(email, password) {
+        const credentials = {
+            email: email,
+            password: password
+        };
+        localStorage.setItem('userCredentials', JSON.stringify(credentials));
+    }
+
+    // Get stored user credentials
+    function getStoredCredentials() {
+        const credentials = localStorage.getItem('userCredentials');
+        return credentials ? JSON.parse(credentials) : null;
+    }
+
+    window.handleLogin = async function(event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value.trim();
+        const password = document.getElementById('password').value.trim();
+        let errorMsg = document.getElementById('loginErrorMsg');
+        if (!errorMsg) {
+            errorMsg = document.createElement('div');
+            errorMsg.id = 'loginErrorMsg';
+            errorMsg.style.color = '#d32f2f';
+            errorMsg.style.margin = '12px 0 0 0';
+            errorMsg.style.fontWeight = '600';
+            document.getElementById('loginForm').appendChild(errorMsg);
+        }
+        if (!email || !password) {
+            errorMsg.textContent = 'Please enter both email and password.';
+            return;
+        }
+        try {
+            // Get stored credentials
+            const storedCredentials = getStoredCredentials();
+            // Check if credentials match
+            if (!storedCredentials || 
+                storedCredentials.email !== email || 
+                storedCredentials.password !== password) {
+                errorMsg.textContent = 'Invalid email or password.';
+                return;
+            }
+            // Simulate user data (replace with real API call if needed)
+            const userData = {
+                id: 'demo_id',
+                email: email,
+                name: email.split('@')[0],
+                org_id: 'default_org',
+                role: 'user'
+            };
+            sessionStorage.setItem('user', JSON.stringify(userData));
+            if (document.getElementById('remember').checked) {
+                localStorage.setItem('user', JSON.stringify(userData));
+            }
+            window.location.href = './main.html';
+        } catch (error) {
+            errorMsg.textContent = 'Login error. Please try again.';
+        }
+    };
+
+    // Toggle password visibility
+    document.addEventListener('DOMContentLoaded', function() {
+        var toggleBtn = document.querySelector('.toggle-password');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', function() {
+                const passwordInput = document.getElementById('password');
+                const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+                passwordInput.setAttribute('type', type);
+            });
+        }
+    });
+
+    // Check for stored credentials
+    window.addEventListener('load', function() {
+        const storedUser = localStorage.getItem('user');
+        if (storedUser) {
+            try {
+                const user = JSON.parse(storedUser);
+                if (user && user.email) {
+                    document.getElementById('email').value = user.email;
+                    document.getElementById('remember').checked = true;
+                }
+            } catch (e) {
+                localStorage.removeItem('user');
+            }
+        }
+    });
+
+    // Add event listener for the Contact Sales Team button in the initial sections
+    document.querySelector('.contact-sales-btn').addEventListener('click', function() {
+        // Hide the login content (in case it was somehow visible - keep this line)
+        document.getElementById('loginContent').style.display = 'none';
+
+        // Show the Contact Sales modal
+        document.getElementById('contactSalesModal').style.display = 'flex'; // Use flex for centering
+
+        // Do NOT hide the initial sections or the navigation bar when showing the modal
+        // document.querySelector('.upgrade-experience-section').style.display = 'none'; // REMOVED
+        // document.querySelector('.ready-to-get-started-section').style.display = 'none'; // REMOVED
+        // document.querySelector('.feature-boxes-section').style.display = 'none'; // REMOVED
+        // document.querySelector('.top-nav').style.display = 'none'; // REMOVED as nav remains visible
+        // document.body.style.paddingTop = '0'; // REMOVED as nav remains visible
+    });
+
+    // Add event listeners for the modal buttons (Cancel and Contact Sales)
+    document.querySelector('#contactSalesModal .btn-cancel').addEventListener('click', function() {
+        // Hide the modal
+        document.getElementById('contactSalesModal').style.display = 'none';
+
+        // No need to show initial sections again here, as they were never hidden
+        // The navbar also remains visible as it was never hidden
+    });
+
+    document.querySelector('#contactSalesModal .btn-contact-sales').addEventListener('click', function() {
+        // Handle the Contact Sales form submission here
+        // For now, just log a message and hide the modal
+        console.log('Contact Sales button clicked!');
+        document.getElementById('contactSalesModal').style.display = 'none';
+        // You would typically collect form data and send it to your backend here
+    });
+
+    // Add event listener for clicking the logo or welcome text in the navbar
+    const navLogo = document.querySelector('.nav-logo');
+    const navWelcome = document.querySelector('.nav-welcome');
+    const upgradeSection = document.querySelector('.upgrade-experience-section');
+    const readySection = document.querySelector('.ready-to-get-started-section');
+    const featuresSection = document.querySelector('.feature-boxes-section');
+    const loginContent = document.getElementById('loginContent');
+    const contactSalesModal = document.getElementById('contactSalesModal');
+    const topNav = document.querySelector('.top-nav');
+
+    function showLoginForm() {
+        // Hide the initial sections
+        if (upgradeSection) upgradeSection.style.display = 'none';
+        if (readySection) readySection.style.display = 'none';
+        if (featuresSection) featuresSection.style.display = 'none';
+
+        // Hide the modal if it's open
+        if (contactSalesModal) contactSalesModal.style.display = 'none';
+
+        // Hide the navigation bar
+        if (topNav) topNav.style.display = 'none';
+
+        // Show the login content
+        if (loginContent) loginContent.style.display = 'flex'; // Assuming it uses flex display
+
+         // Adjust body padding for when the nav is hidden for the login form
+         document.body.style.paddingTop = '0';
+    }
+
+    // Function to show the initial upgrade page content and navbar
+    function showUpgradePage() {
+         // Show the initial sections
+        if (upgradeSection) upgradeSection.style.display = 'block'; // Assuming block or similar display
+        if (readySection) readySection.style.display = 'flex'; // Assuming flex display
+        if (featuresSection) featuresSection.style.display = 'block'; // Assuming block or similar display
+
+        // Hide the login content
+        if (loginContent) loginContent.style.display = 'none';
+
+         // Hide the modal if it's open
+        if (contactSalesModal) contactSalesModal.style.display = 'none';
+
+        // Show the navigation bar
+        if (topNav) topNav.style.display = 'flex'; // Assuming flex display for navbar
+
+         // Adjust body padding to account for the fixed nav
+         // You might need to fine-tune this value based on the actual height of your top-nav
+        document.body.style.paddingTop = '61px'; // Example padding (nav height + border)
+    }
+
+
+    if (navLogo) {
+        navLogo.style.cursor = 'pointer'; // Indicate that it's clickable
+        navLogo.addEventListener('click', showLoginForm);
+    }
+
+    if (navWelcome) {
+        navWelcome.style.cursor = 'pointer'; // Indicate that it's clickable
+        navWelcome.addEventListener('click', showLoginForm);
+    }
+
+    // Call showUpgradePage on initial page load to ensure correct state
+    window.addEventListener('load', showUpgradePage);
+
+    // (Clerk authentication will be handled via npm and Vite. See README for details.)
+
+    </script>
+
+    <script type="module">
+    import { Clerk } from '@clerk/clerk-js';
+
+    const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+    const clerk = new Clerk(publishableKey);
+    await clerk.load();
+
+    const loginForm = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('loginErrorMsg');
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorMsg.textContent = '';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      try {
+        const signIn = await clerk.client.signIn.create({ identifier: email, password });
+        if (signIn.status === 'complete') {
+          // Set session and redirect
+          await clerk.setSession(signIn.createdSessionId);
+          window.location.href = './main.html';
+        } else {
+          errorMsg.textContent = 'Sign in not complete. Please check your credentials.';
+        }
+      } catch (err) {
+        errorMsg.textContent = err.errors?.[0]?.message || 'Login error. Please try again.';
+      }
+    });
+    </script>
 </body>
 </html>
