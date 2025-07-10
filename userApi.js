@@ -1,5 +1,5 @@
 // Base URL for the API
-const API_BASE_URL = 'https://tvs-motors-api.eficensittest.com';
+const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com/';
 
 // API endpoints
 const API_ENDPOINTS = {

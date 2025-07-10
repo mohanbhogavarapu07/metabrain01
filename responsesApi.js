@@ -1,5 +1,5 @@
 // Responses API functions
-const API_BASE_URL = 'https://tvs-motors-api.eficensittest.com';
+const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com';
 
 // Get all responses
 async function getAllResponses() {

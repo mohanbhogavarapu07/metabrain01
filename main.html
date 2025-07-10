@@ -10,13 +10,210 @@
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <script src="chart-utils.js"></script>
+  <!-- Removed Clerk ES module script here -->
   <script type="module">
     import { createChat, getAllChats, getChatsByUserId, deleteChat } from './chatApi.js';
     import { createResponse, getAllResponses, reactToResponse } from './responsesApi.js';
     import { createMessage, getMessagesByChatId } from './messageApi.js';
+    import { Clerk } from '@clerk/clerk-js';
+    const publishableKey = import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY || window.VITE_CLERK_PUBLISHABLE_KEY || 'YOUR_CLERK_PUBLISHABLE_KEY';
+    const clerk = new Clerk(publishableKey);
+    await clerk.load();
+    window.clerk = clerk;
+
+    // Helper to render Clerk sign-in card
+    function renderSignInCard() {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('sidebar').style.display = 'none';
+      let signInDiv = document.getElementById('clerkSignInDiv');
+      if (!signInDiv) {
+        signInDiv = document.createElement('div');
+        signInDiv.id = 'clerkSignInDiv';
+        document.body.appendChild(signInDiv);
+      }
+      signInDiv.innerHTML = '';
+      clerk.mountSignIn(signInDiv);
+    }
+
+    // Helper to render user profile in sidebar (Clerk UserButton only)
+    function renderSidebarProfile(user) {
+      document.getElementById('mainContent').style.display = '';
+      document.getElementById('sidebar').style.display = '';
+      const signInDiv = document.getElementById('clerkSignInDiv');
+      if (signInDiv) signInDiv.remove();
+      const userButtonDiv = document.getElementById('clerk-user-button');
+      if (userButtonDiv) {
+        userButtonDiv.innerHTML = '';
+        clerk.mountUserButton(userButtonDiv, {
+          showName: true,
+          showEmail: true,
+          afterSignOutUrl: '/'
+        });
+      }
+    }
+
+    // Main auth logic
+    async function checkAuth() {
+      await clerk.load();
+      const user = clerk.user;
+      if (!user) {
+        renderSignInCard();
+      } else {
+        renderSidebarProfile(user);
+      }
+    }
+    checkAuth();
+    if (typeof clerk.onUserChanged === 'function') {
+      clerk.onUserChanged(checkAuth);
+    }
   </script>
+  <!-- Add this CSS in a <style> tag in the <head> or at the top of the body -->
+  <style>
+  #clerk-user-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0;
+  }
+  #clerk-user-button .cl-userButtonAvatarBox {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    order: 0 !important;
+    margin-right: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    transition: width 0.2s, height 0.2s;
+  }
+  #clerk-user-button .cl-userButtonText {
+    order: 1 !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  #clerk-user-button .cl-userButtonPrimaryIdentifier {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #1A2340 !important;
+    margin-bottom: 0 !important;
+    text-align: left !important;
+    display: block !important;
+  }
+  #clerk-user-button .cl-userButtonSecondaryIdentifier {
+    display: none !important;
+  }
+  /* Hide name when sidebar is closed, show only avatar (make avatar larger) */
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonText {
+    display: none !important;
+  }
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonAvatarBox {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    font-size: 0.92rem !important;
+    font-weight: 400 !important;
+    color: #7A8CA6 !important;
+    text-align: left !important;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 16px 20px;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+  #clerk-user-button .cl-userButtonBox {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  #clerk-user-button .cl-userButtonAvatarBox {
+    order: 0 !important;
+    margin-right: 0 !important;
+  }
+  #clerk-user-button .cl-userButtonText {
+    order: 1 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  /* Hide name/email when sidebar is closed */
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonText {
+    display: none !important;
+  }
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    cursor: pointer;
+  }
+  .sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e5e7eb;
+  }
+  .sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .sidebar-user-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1A2340;
+  }
+  .sidebar-user-email {
+    font-size: 0.92rem;
+    font-weight: 400;
+    color: #7A8CA6;
+  }
+  .sidebar-user-actions {
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+  }
+  .sidebar-user-actions button {
+    background: #f5f6fa;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.92rem;
+    color: #0066B3;
+    cursor: pointer;
+  }
+  .sidebar-user-actions button:hover {
+    background: #e5e7eb;
+  }
+  </style>
 </head>
 <body>
+  <!-- Add Clerk UMD build at the top of the body -->
+  <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.umd.js"></script>
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div>
@@ -67,11 +264,7 @@
       </nav>
     </div>
     <div class="user-profile">
-      <div class="profile-img">JD</div>
-      <div class="profile-info">
-        <div class="profile-name">John Doe</div>
-        <div class="profile-role">Executive Leadership</div>
-      </div>
+      <div id="clerk-user-button"></div>
     </div>
   </aside>
 
@@ -86,7 +279,7 @@
           <rect x="4" y="17" width="16" height="2" rx="1"/>
         </svg>
       </button>
-      
+      <div id="currentChatTitle" class="chat-title-text">Ideation Studio</div>
       <a id="infoIconBtn" href="images/Report.docx" download style="display: flex; align-items: center; margin-left: 780px; cursor: pointer;">
         <svg width="25" height="25" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="16" cy="16" r="14" stroke="#4285F4" stroke-width="2.5" fill="none"/>
@@ -111,20 +304,23 @@
     </div>
     <div class="container">
 
-      <div class="questions-grid">
-        <div class="question-card"><p>Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale</p></div>
-        <div class="question-card"><p>What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?</p></div>
-        <div class="question-card"><p>Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?</p></div>
-        <div class="question-card"><p>How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?</p></div>
-        <div class="question-card"><p>What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?</p></div>
-        <div class="question-card"><p>Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?</p></div>
+      <div class="questions-grid" style="display: grid;">
+        <div class="question-card" data-question="Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale"><p>Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale</p></div>
+        <div class="question-card" data-question="What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?"><p>What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?</p></div>
+        <div class="question-card" data-question="Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?"><p>Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?</p></div>
+        <div class="question-card" data-question="How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?"><p>How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?</p></div>
+        <div class="question-card" data-question="What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?"><p>What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?</p></div>
+        <div class="question-card" data-question="Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?"><p>Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?</p></div>
       </div>
       <!-- Update the chat-section styling -->
-      <div class="chat-section">
+      <div class="chat-section" style="display: flex;">
         <div class="chat-messages" id="chatMessages">
           <!-- Chat messages will be displayed here -->
         </div>
         <div class="chat-input-container">
+          <div class="chat-input-message" id="chatInputMessage">
+            What insights you are looking for today?
+          </div>
           <textarea class="chat-input" id="chatInput" placeholder="Type your question here.."></textarea>
           <div class="input-actions">
             <div class="left-actions">
@@ -1036,15 +1232,27 @@
         newChatBtn.addEventListener('click', () => {
             // Reset chat state
             currentChatId = null;
-            chatMessages.innerHTML = '';
-            chatInput.value = '';
+            if (chatMessages) chatMessages.innerHTML = '';
+            if (chatInput) chatInput.value = '';
             
-            // Reset chat header
-            document.getElementById('currentChatTitle').textContent = 'Ideation Studio';
+            // Reset chat header and message based on ideation toggle state
+            const ideationToggle = document.getElementById('ideationToggle');
+            const chatInputMessage = document.getElementById('chatInputMessage');
+            const currentChatTitle = document.getElementById('currentChatTitle');
             
-            // Show questions grid and chat section
-            document.querySelector('.questions-grid').style.display = 'grid';
-            document.querySelector('.chat-section').style.display = 'flex';
+            if (ideationToggle && ideationToggle.checked) {
+                if (currentChatTitle) currentChatTitle.textContent = 'Ideation Studio';
+                if (chatInputMessage) chatInputMessage.textContent = 'Welcome to Ideation Studio';
+            } else {
+                if (currentChatTitle) currentChatTitle.textContent = 'MetaBrain Chat';
+                if (chatInputMessage) chatInputMessage.textContent = 'What insights you are looking for today?';
+            }
+            
+            // Show both questions grid and chat section
+            const questionsGrid = document.querySelector('.questions-grid');
+            const chatSection = document.querySelector('.chat-section');
+            if (questionsGrid) questionsGrid.style.display = 'grid';
+            if (chatSection) chatSection.style.display = 'flex';
             
             // Hide any other sections
             document.getElementById('savedReportsSection')?.remove();
@@ -1052,10 +1260,11 @@
             document.getElementById('actionTwinSection')?.remove();
             
             // Show main container
-            document.querySelector('.container').style.display = '';
+            const container = document.querySelector('.container');
+            if (container) container.style.display = '';
 
             // Focus on chat input
-            chatInput.focus();
+            if (chatInput) chatInput.focus();
         });
     }
 
@@ -1301,6 +1510,15 @@
 
     // Handle sending messages
     async function handleSendMessage() {
+        const chatInput = document.getElementById('chatInput');
+        const chatMessages = document.getElementById('chatMessages');
+        const currentChatTitle = document.getElementById('currentChatTitle');
+        
+        if (!chatInput || !chatMessages) {
+          console.error('Required elements not found');
+          return;
+        }
+        
         const messageText = chatInput.value.trim();
         if (!messageText) return;
     
@@ -1309,25 +1527,23 @@
             chatInput.disabled = true;
             chatInput.classList.add('sending');
     
-            const userData = getUserData();
-            if (!userData) {
-                console.error('User not logged in');
-                return;
-            }
-    
-            // Display user message immediately
-            const userMessageData = { text: messageText, sender: 'user', createdAt: new Date().toISOString() };
+          // Create user message element
+          const userMessageData = {
+            text: messageText,
+            sender: 'user',
+            createdAt: new Date().toISOString()
+          };
+          
             displayMessage(userMessageData, true);
     
-            // Clear input after displaying message
+          // Clear input
             chatInput.value = '';
-            chatInput.style.height = 'auto';
     
-            // If no current chat, create a new one
+          // Create or update chat
             if (!currentChatId) {
                 const chatData = {
-                    user_id: userData.id,
-                    title: messageText.substring(0, 50),
+              user_id: getUserData()?.id || 'default',
+              title: messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
                 };
@@ -1335,14 +1551,13 @@
                 const newChat = await createChat(chatData);
                 currentChatId = newChat.id;
                 
-                // Update chat header with new title
-                document.getElementById('currentChatTitle').textContent = chatData.title;
-            } else {
-                // Update chat title for existing chat
-                await updateChatTitle(messageText);
+            // Update chat title if it exists
+            if (currentChatTitle) {
+              currentChatTitle.textContent = chatData.title;
+            }
             }
     
-            // Create user message within the current chat
+          // Create user message in database
             const messageData = {
                 chat_id: currentChatId,
                 sender: 'user',
@@ -1353,16 +1568,18 @@
     
             const sentMessage = await createMessage(messageData);
     
-            // Display processing placeholder
+          // Display processing message
             const processingMessageData = { 
                 text: 'MetaBrain is thinking...', 
                 sender: 'bot', 
                 createdAt: new Date().toISOString() 
             };
+          
             const processingMessageElement = displayMessage(processingMessageData, false);
             
-            // Add bot logo and animation to processing message
+          // Add bot logo and animation
             const processingContent = processingMessageElement.querySelector('.message-content');
+          if (processingContent) {
             processingContent.innerHTML = `
                 <div class="processing-message">
                     <div class="bot-logo">
@@ -1379,6 +1596,7 @@
                     </div>
                 </div>
             `;
+          }
     
             try {
                 const response = await fetch('https://tvs-motors-api.eficensittest.com/tvs/query', {
@@ -1398,11 +1616,9 @@
                 }
     
                 const botResponse = await response.json();
-                
-                // Clean the bot response using the new function
                 const cleanedResponse = cleanBotResponse(botResponse.response);
 
-                // Create a response record with cleaned text
+            // Create response record
                 const responseData = {
                     chat_id: currentChatId,
                     message_id: sentMessage.id,
@@ -1413,7 +1629,7 @@
 
                 const createdResponse = await createResponse(responseData);
 
-                // Create a message record for the bot response
+            // Create bot message record
                 const botMessageData = {
                     chat_id: currentChatId,
                     sender: 'bot',
@@ -1429,7 +1645,7 @@
                     processingMessageElement.parentNode.removeChild(processingMessageElement);
                 }
 
-                // Display the cleaned bot response
+            // Display bot response
                 const displayData = {
                     text: cleanedResponse,
                     sender: 'bot',
@@ -1448,11 +1664,14 @@
     
         } catch (error) {
             console.error('Error in handleSendMessage:', error);
+          showNotification('Error sending message. Please try again.', 'error');
         } finally {
             // Re-enable input and remove sending state
+          if (chatInput) {
             chatInput.disabled = false;
             chatInput.classList.remove('sending');
             chatInput.focus();
+          }
         }
     }
 
@@ -1625,22 +1844,41 @@
                       </div>
                       <div class="loading-text">Loading chat...</div>
                     `;
+                    
+                    // Get chat messages container
+                    const chatMessages = document.querySelector('.chat-messages');
+                    if (chatMessages) {
                     chatMessages.innerHTML = '';
                     chatMessages.appendChild(loadingIndicator);
+                    }
 
                     // Update UI state immediately
                     currentChatId = chat.id;
-                    document.getElementById('currentChatTitle').textContent = chat.title || 'New Chat';
+                    const currentChatTitle = document.getElementById('currentChatTitle');
+                    if (currentChatTitle) {
+                        currentChatTitle.textContent = chat.title || 'New Chat';
+                    }
                     
                     // Hide all other sections and show chat section
-                    document.querySelector('.container').style.display = '';
+                    const container = document.querySelector('.container');
+                    if (container) {
+                        container.style.display = '';
+                    }
+                    
+                    // Remove other sections
                     document.getElementById('savedReportsSection')?.remove();
                     document.getElementById('projectSection')?.remove();
                     document.getElementById('actionTwinSection')?.remove();
                     
-                    // Show chat section
-                    document.querySelector('.questions-grid').style.display = 'none';
-                    document.querySelector('.chat-section').style.display = 'flex';
+                    // Show chat section and hide questions grid
+                    const questionsGrid = document.querySelector('.questions-grid');
+                    const chatSection = document.querySelector('.chat-section');
+                    if (questionsGrid) {
+                        questionsGrid.style.display = 'none';
+                    }
+                    if (chatSection) {
+                        chatSection.style.display = 'flex';
+                    }
 
                     // Load messages
                     const messages = await getMessagesByChatId(chat.id);
@@ -1664,15 +1902,22 @@
                         });
                         
                         // Append all messages at once
+                        if (chatMessages) {
                         chatMessages.appendChild(fragment);
                         chatMessages.scrollTop = chatMessages.scrollHeight;
+                        }
                     } else {
+                        if (chatMessages) {
                         chatMessages.innerHTML = '';
+                        }
                         currentChatId = null;
                     }
                 } catch (error) {
                     console.error('Error loading chat messages:', error);
+                    const chatMessages = document.querySelector('.chat-messages');
+                    if (chatMessages) {
                     chatMessages.innerHTML = '<div class="error-message">Failed to load chat messages. Please try again.</div>';
+                    }
                     currentChatId = null;
                 } finally {
                     // Remove loading state
@@ -1742,17 +1987,14 @@
 
       // Add ideation toggle functionality
       const ideationToggle = document.getElementById('ideationToggle');
+      const chatInputMessage = document.getElementById('chatInputMessage');
+      
       if (ideationToggle) {
         ideationToggle.addEventListener('change', () => {
-          const questionsGrid = document.querySelector('.questions-grid');
-          const chatSection = document.querySelector('.chat-section');
-          
           if (ideationToggle.checked) {
-            questionsGrid.style.display = 'none';
-            chatSection.style.display = 'flex';
+            chatInputMessage.textContent = 'Welcome to Ideation Studio';
           } else {
-            questionsGrid.style.display = 'grid';
-            chatSection.style.display = 'flex';
+            chatInputMessage.textContent = 'What insights you are looking for today?';
           }
         });
       }
@@ -2146,6 +2388,61 @@
         };
       }
     }, 0);
+  </script>
+  <!-- Place this script at the end of the body -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function startClerk() {
+      if (!window.Clerk) {
+        setTimeout(startClerk, 50);
+        return;
+      }
+      const publishableKey = window.VITE_CLERK_PUBLISHABLE_KEY || 'YOUR_CLERK_PUBLISHABLE_KEY';
+      const clerk = new window.Clerk(publishableKey);
+      clerk.load().then(() => {
+        function renderSignInCard() {
+          document.getElementById('mainContent').style.display = 'none';
+          document.getElementById('sidebar').style.display = 'none';
+          let signInDiv = document.getElementById('clerkSignInDiv');
+          if (!signInDiv) {
+            signInDiv = document.createElement('div');
+            signInDiv.id = 'clerkSignInDiv';
+            document.body.appendChild(signInDiv);
+          }
+          signInDiv.innerHTML = '';
+          clerk.mountSignIn(signInDiv);
+        }
+        function renderSidebarProfile(user) {
+          document.getElementById('mainContent').style.display = '';
+          document.getElementById('sidebar').style.display = '';
+          const signInDiv = document.getElementById('clerkSignInDiv');
+          if (signInDiv) signInDiv.remove();
+          const userButtonDiv = document.getElementById('clerk-user-button');
+          if (userButtonDiv) {
+            userButtonDiv.innerHTML = '';
+            clerk.mountUserButton(userButtonDiv, {
+              showName: true,
+              showEmail: true,
+              afterSignOutUrl: '/'
+            });
+          }
+        }
+        function checkAuth() {
+          const user = clerk.user;
+          if (!user) {
+            renderSignInCard();
+          } else {
+            renderSidebarProfile(user);
+          }
+        }
+        checkAuth();
+        if (typeof clerk.onUserChanged === 'function') {
+          clerk.onUserChanged(checkAuth);
+        }
+      });
+    }
+    startClerk();
+  });
   </script>
 </body>
 </html>
