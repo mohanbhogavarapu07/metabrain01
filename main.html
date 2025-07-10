@@ -10,13 +10,210 @@
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@17/umd/react-dom.production.min.js"></script>
   <script src="chart-utils.js"></script>
+  <!-- Removed Clerk ES module script here -->
   <script type="module">
     import { createChat, getAllChats, getChatsByUserId, deleteChat } from './chatApi.js';
     import { createResponse, getAllResponses, reactToResponse } from './responsesApi.js';
     import { createMessage, getMessagesByChatId } from './messageApi.js';
+    import { Clerk } from '@clerk/clerk-js';
+    const publishableKey = import.meta.env?.VITE_CLERK_PUBLISHABLE_KEY || window.VITE_CLERK_PUBLISHABLE_KEY || 'YOUR_CLERK_PUBLISHABLE_KEY';
+    const clerk = new Clerk(publishableKey);
+    await clerk.load();
+    window.clerk = clerk;
+
+    // Helper to render Clerk sign-in card
+    function renderSignInCard() {
+      document.getElementById('mainContent').style.display = 'none';
+      document.getElementById('sidebar').style.display = 'none';
+      let signInDiv = document.getElementById('clerkSignInDiv');
+      if (!signInDiv) {
+        signInDiv = document.createElement('div');
+        signInDiv.id = 'clerkSignInDiv';
+        document.body.appendChild(signInDiv);
+      }
+      signInDiv.innerHTML = '';
+      clerk.mountSignIn(signInDiv);
+    }
+
+    // Helper to render user profile in sidebar (Clerk UserButton only)
+    function renderSidebarProfile(user) {
+      document.getElementById('mainContent').style.display = '';
+      document.getElementById('sidebar').style.display = '';
+      const signInDiv = document.getElementById('clerkSignInDiv');
+      if (signInDiv) signInDiv.remove();
+      const userButtonDiv = document.getElementById('clerk-user-button');
+      if (userButtonDiv) {
+        userButtonDiv.innerHTML = '';
+        clerk.mountUserButton(userButtonDiv, {
+          showName: true,
+          showEmail: true,
+          afterSignOutUrl: '/'
+        });
+      }
+    }
+
+    // Main auth logic
+    async function checkAuth() {
+      await clerk.load();
+      const user = clerk.user;
+      if (!user) {
+        renderSignInCard();
+      } else {
+        renderSidebarProfile(user);
+      }
+    }
+    checkAuth();
+    if (typeof clerk.onUserChanged === 'function') {
+      clerk.onUserChanged(checkAuth);
+    }
   </script>
+  <!-- Add this CSS in a <style> tag in the <head> or at the top of the body -->
+  <style>
+  #clerk-user-button {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+    background: none !important;
+    box-shadow: none !important;
+    padding: 0;
+  }
+  #clerk-user-button .cl-userButtonAvatarBox {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    order: 0 !important;
+    margin-right: 0 !important;
+    width: 40px !important;
+    height: 40px !important;
+    min-width: 40px !important;
+    min-height: 40px !important;
+    border-radius: 50% !important;
+    object-fit: cover !important;
+    transition: width 0.2s, height 0.2s;
+  }
+  #clerk-user-button .cl-userButtonText {
+    order: 1 !important;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 0;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  #clerk-user-button .cl-userButtonPrimaryIdentifier {
+    font-size: 1rem !important;
+    font-weight: 600 !important;
+    color: #1A2340 !important;
+    margin-bottom: 0 !important;
+    text-align: left !important;
+    display: block !important;
+  }
+  #clerk-user-button .cl-userButtonSecondaryIdentifier {
+    display: none !important;
+  }
+  /* Hide name when sidebar is closed, show only avatar (make avatar larger) */
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonText {
+    display: none !important;
+  }
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonAvatarBox {
+    width: 48px !important;
+    height: 48px !important;
+    min-width: 48px !important;
+    font-size: 0.92rem !important;
+    font-weight: 400 !important;
+    color: #7A8CA6 !important;
+    text-align: left !important;
+  }
+  .user-profile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 56px;
+    padding: 16px 20px;
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+  }
+  #clerk-user-button .cl-userButtonBox {
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+  }
+  #clerk-user-button .cl-userButtonAvatarBox {
+    order: 0 !important;
+    margin-right: 0 !important;
+  }
+  #clerk-user-button .cl-userButtonText {
+    order: 1 !important;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+    gap: 0;
+    margin: 0 !important;
+    text-align: left !important;
+  }
+  /* Hide name/email when sidebar is closed */
+  .sidebar.closed .user-profile #clerk-user-button .cl-userButtonText {
+    display: none !important;
+  }
+  .sidebar-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    cursor: pointer;
+  }
+  .sidebar-user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e5e7eb;
+  }
+  .sidebar-user-info {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+  }
+  .sidebar-user-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1A2340;
+  }
+  .sidebar-user-email {
+    font-size: 0.92rem;
+    font-weight: 400;
+    color: #7A8CA6;
+  }
+  .sidebar-user-actions {
+    margin-top: 4px;
+    display: flex;
+    gap: 8px;
+  }
+  .sidebar-user-actions button {
+    background: #f5f6fa;
+    border: none;
+    border-radius: 4px;
+    padding: 4px 10px;
+    font-size: 0.92rem;
+    color: #0066B3;
+    cursor: pointer;
+  }
+  .sidebar-user-actions button:hover {
+    background: #e5e7eb;
+  }
+  </style>
 </head>
 <body>
+  <!-- Add Clerk UMD build at the top of the body -->
+  <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4/dist/clerk.umd.js"></script>
   <!-- Sidebar -->
   <aside class="sidebar" id="sidebar">
     <div>
@@ -67,11 +264,7 @@
       </nav>
     </div>
     <div class="user-profile">
-      <div class="profile-img">JD</div>
-      <div class="profile-info">
-        <div class="profile-name">John Doe</div>
-        <div class="profile-role">Executive Leadership</div>
-      </div>
+      <div id="clerk-user-button"></div>
     </div>
   </aside>
 
@@ -86,7 +279,7 @@
           <rect x="4" y="17" width="16" height="2" rx="1"/>
         </svg>
       </button>
-      
+      <div id="currentChatTitle" class="chat-title-text">Ideation Studio</div>
       <a id="infoIconBtn" href="images/Report.docx" download style="display: flex; align-items: center; margin-left: 780px; cursor: pointer;">
         <svg width="25" height="25" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
           <circle cx="16" cy="16" r="14" stroke="#4285F4" stroke-width="2.5" fill="none"/>
@@ -2195,6 +2388,61 @@
         };
       }
     }, 0);
+  </script>
+  <!-- Place this script at the end of the body -->
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    function startClerk() {
+      if (!window.Clerk) {
+        setTimeout(startClerk, 50);
+        return;
+      }
+      const publishableKey = window.VITE_CLERK_PUBLISHABLE_KEY || 'YOUR_CLERK_PUBLISHABLE_KEY';
+      const clerk = new window.Clerk(publishableKey);
+      clerk.load().then(() => {
+        function renderSignInCard() {
+          document.getElementById('mainContent').style.display = 'none';
+          document.getElementById('sidebar').style.display = 'none';
+          let signInDiv = document.getElementById('clerkSignInDiv');
+          if (!signInDiv) {
+            signInDiv = document.createElement('div');
+            signInDiv.id = 'clerkSignInDiv';
+            document.body.appendChild(signInDiv);
+          }
+          signInDiv.innerHTML = '';
+          clerk.mountSignIn(signInDiv);
+        }
+        function renderSidebarProfile(user) {
+          document.getElementById('mainContent').style.display = '';
+          document.getElementById('sidebar').style.display = '';
+          const signInDiv = document.getElementById('clerkSignInDiv');
+          if (signInDiv) signInDiv.remove();
+          const userButtonDiv = document.getElementById('clerk-user-button');
+          if (userButtonDiv) {
+            userButtonDiv.innerHTML = '';
+            clerk.mountUserButton(userButtonDiv, {
+              showName: true,
+              showEmail: true,
+              afterSignOutUrl: '/'
+            });
+          }
+        }
+        function checkAuth() {
+          const user = clerk.user;
+          if (!user) {
+            renderSignInCard();
+          } else {
+            renderSidebarProfile(user);
+          }
+        }
+        checkAuth();
+        if (typeof clerk.onUserChanged === 'function') {
+          clerk.onUserChanged(checkAuth);
+        }
+      });
+    }
+    startClerk();
+  });
   </script>
 </body>
 </html>
