@@ -154,7 +154,7 @@
 
 
     <script type="module">
-        import { getUserByEmail } from './userApi.js';
+        import { getUserByEmail, loginUser } from './userApi.js';
 
         // Store user credentials in localStorage after successful signup
         function storeUserCredentials(email, password) {
@@ -195,29 +195,20 @@
             try {
                 console.log('Attempting login with email:', email);
                 
-                // Get stored credentials
-                const storedCredentials = getStoredCredentials();
+                // Call your backend login endpoint
+                const loginResponse = await loginUser(email, password);
+                console.log('Login response:', loginResponse);
                 
-                // Check if credentials match
-                if (!storedCredentials || 
-                    storedCredentials.email !== email || 
-                    storedCredentials.password !== password) {
-                    errorMsg.textContent = 'Invalid email or password.';
-                    return;
-                }
-
-                // Get user by email
-                const response = await getUserByEmail(email);
-                console.log('Login response:', response);
-                
-                if (response && response.email === email) {
+                // Handle successful login
+                if (loginResponse && loginResponse.success !== false) {
                     // Store user data in session storage
                     const userData = {
-                        id: response.id,
-                        email: response.email,
-                        name: response.name || email.split('@')[0],
-                        org_id: response.org_id || 'default_org',
-                        role: response.role || 'user'
+                        id: loginResponse.user?.id || loginResponse.id,
+                        email: loginResponse.user?.email || loginResponse.email || email,
+                        name: loginResponse.user?.name || loginResponse.name || email.split('@')[0],
+                        org_id: loginResponse.user?.org_id || loginResponse.org_id || 'default_org',
+                        role: loginResponse.user?.role || loginResponse.role || 'user',
+                        token: loginResponse.token || loginResponse.access_token // Store token if provided
                     };
                     
                     console.log('Storing user data:', userData);
@@ -231,8 +222,8 @@
                     // Redirect to main page
                     window.location.href = './main.html';
                 } else {
-                    console.log('Invalid response format:', response);
-                    errorMsg.textContent = 'Invalid email or password.';
+                    console.log('Login failed:', loginResponse);
+                    errorMsg.textContent = loginResponse.message || 'Invalid email or password.';
                 }
             } catch (error) {
                 console.error('Login error:', error);
@@ -248,6 +239,12 @@
                             break;
                         case 401:
                             errorMsg.textContent = 'Invalid email or password.';
+                            break;
+                        case 400:
+                            errorMsg.textContent = 'Invalid request. Please check your input.';
+                            break;
+                        case 500:
+                            errorMsg.textContent = 'Server error. Please try again later.';
                             break;
                         default:
                             errorMsg.textContent = 'An error occurred. Please try again.';

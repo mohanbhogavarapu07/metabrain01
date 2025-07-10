@@ -7,7 +7,8 @@ const API_ENDPOINTS = {
     getUser: '/users/get_user/',
     createUser: '/users/create_user/',
     updateUser: '/users/update_user/',
-    deleteUser: '/users/delete_user/'
+    deleteUser: '/users/delete_user/',
+    login: '/users/login/' // Add your actual login endpoint here
 };
 
 // Get all users
@@ -141,11 +142,42 @@ async function deleteUser(email, userId) {
     }
 }
 
+// Login user
+async function loginUser(email, password) {
+    try {
+        console.log('Logging in user with email:', email);
+        const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.login}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                email: email,
+                password: password
+            })
+        });
+
+        if (!response.ok) {
+            console.error('Login response not OK:', response.status);
+            throw { response };
+        }
+
+        const data = await response.json();
+        console.log('Login response:', data);
+        return data;
+    } catch (error) {
+        console.error('Error logging in user:', error);
+        throw error;
+    }
+}
+
 // Export the functions
 export {
     getAllUsers,
     getUserByEmail,
     createUser,
     updateUser,
-    deleteUser
+    deleteUser,
+    loginUser
 }; 
