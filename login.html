@@ -5,8 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MetaBrain Login</title>
     <link rel="stylesheet" href="login.css">
-    <!--clerk js sdk script-->
-    <script src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
+    <!-- Clerk authentication is now handled via npm in Vite. Remove any Clerk CDN/global code. -->
 </head>
 <body>
     <!-- Navigation Bar -->
@@ -14,7 +13,7 @@
         <div class="nav-logo">
             <img src="images/logo.png" alt="MetaBrain Logo">
         </div>
-        <div class="nav-welcome">
+        <div class="nav-welcome" id="navWelcomeBtn" style="cursor:pointer;">
             <span>Welcome</span>
         </div>
     </nav>
@@ -33,12 +32,12 @@
                 <h2>Ready to get started?</h2>
                 <h2 class="talk-to-team">Talk to our team today.</h2>
                 <p>Our team of experts is ready to help you choose the perfect plan for your needs. Get personalized guidance and discover how we can help transform your business.</p>
-                <button class="btn contact-sales-btn">Contact Sales Team</button>
+                <button class="btn contact-sales-btn" id="contactSalesBtn">Contact Sales Team</button>
             </div>
             <div class="action-twin-preview">
-                <img src="images1/home.png" alt="Metabrain Application Preview" class="navbar-image">
+                <img src="images/home.png" alt="Metabrain Application Preview" class="navbar-image">
                 <div class="navbar-overlay"></div>
-                <img src="images1/home1.png" alt="Metabrain Overlay Image" class="navbar-image1">
+                <img src="images/home1.png" alt="Metabrain Overlay Image" class="navbar-image1">
             </div>
         </div>
     </section>
@@ -86,7 +85,6 @@
     </section>
 
     <!-- Existing login content - initially hidden -->
-    <div id="clerk-widget-container"></div> <!-- Clerk will mount here -->
     <div class="login-container" id="loginContent">
         <!-- Left Section -->
         <div class="login-form-section">
@@ -97,21 +95,18 @@
             <div class="login-form">
                 <h2>Sign In</h2>
                 <p class="subtitle">Your gateway to smarter decisions. Log in to access insights that matter.</p>
-                
-                <form id="loginForm" onsubmit="handleLogin(event)">
+                <form id="loginForm">
                     <div class="form-group">
-                        <lable type="email" class="lable">Email</lable>
+                        <label for="email" class="lable">Email</label>
                         <input type="email" id="email" placeholder="Email" required>
                     </div>
-                    
                     <div class="form-group password-group">
-                        <lable type="Password" class="lable">Password</lable>
+                        <label for="password" class="lable">Password</label>
                         <input type="password" id="password" placeholder="Password" required>
                         <button type="button" class="toggle-password">
                             <img src="images/eye-icon.png" alt="Show/Hide Password">
                         </button>
                     </div>
-                    
                     <div class="form-options">
                         <label class="remember-me">
                             <input type="checkbox" id="remember">
@@ -119,12 +114,9 @@
                         </label>
                         <a href="forgot-password.html" class="forgot-password">Forgot Password?</a>
                     </div>
-                    
                     <button type="submit" class="sign-in-btn">Sign in</button>
+                    <div id="loginErrorMsg" style="color:#d32f2f;margin:12px 0 0 0;font-weight:600;"></div>
                 </form>
-                
-
-                
                 <p class="signup-prompt">
                     Not a member yet? <a href="signup.html" class="sign-up-link">Sign Up</a>
                 </p>
@@ -138,9 +130,9 @@
                 <p>Access powerful insights, track your sustainability goals, and take actionable steps toward a greener future.</p>
                 
 
-                <img src="images1/home.png" alt="Metabrain Application Preview" class="app-preview-image">
+                <img src="images/home.png" alt="Metabrain Application Preview" class="app-preview-image">
                 <div class="black-overlay"></div>
-                <img src="images1/home1.png" alt="Metabrain Overlay Image" class="app-overlay-image">
+                <img src="images/home1.png" alt="Metabrain Overlay Image" class="app-overlay-image">
                
             </div>
             
@@ -444,5 +436,68 @@
         </div>
     </div>
 
+    <!-- Clerk widget container -->
+    <!-- <div id="clerk-widget-container"></div> -->
+
+    <script type="module">
+    import { Clerk } from '@clerk/clerk-js';
+
+    const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+    console.log('Clerk Key:', publishableKey); // DEBUG: Check if key is set
+    const clerk = new Clerk(publishableKey);
+    await clerk.load();
+    console.log('Clerk loaded:', clerk); // DEBUG: Check if Clerk is initialized
+
+    const loginForm = document.getElementById('loginForm');
+    const errorMsg = document.getElementById('loginErrorMsg');
+
+    loginForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      errorMsg.textContent = '';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value.trim();
+      try {
+        const signIn = await clerk.client.signIn.create({ identifier: email, password });
+        console.log('SignIn result:', signIn); // DEBUG: See signIn object
+        if (signIn.status === 'complete') {
+          // Clerk automatically sets the session. Just redirect.
+          window.location.href = './main.html';
+        } else if (signIn.status === 'needs_first_factor' || signIn.status === 'needs_second_factor') {
+          errorMsg.textContent = 'Multi-factor authentication required. Please complete all steps.';
+        } else {
+          errorMsg.textContent = 'Sign in not complete. Please check your credentials.';
+        }
+      } catch (err) {
+        console.error('Login error:', err); // DEBUG: Log error object
+        errorMsg.textContent = err.errors?.[0]?.message || 'Login error. Please try again.';
+      }
+    });
+
+    // Show login form logic
+    function showLoginForm() {
+      document.querySelector('.upgrade-experience-section').style.display = 'none';
+      document.querySelector('.ready-to-get-started-section').style.display = 'none';
+      document.querySelector('.feature-boxes-section').style.display = 'none';
+      document.getElementById('loginContent').style.display = 'flex';
+    }
+
+    document.getElementById('navWelcomeBtn').addEventListener('click', showLoginForm);
+
+    // Add event listener for Contact Sales Team button to show the modal
+    const contactSalesBtn = document.getElementById('contactSalesBtn');
+    const contactSalesModal = document.getElementById('contactSalesModal');
+    if (contactSalesBtn && contactSalesModal) {
+      contactSalesBtn.addEventListener('click', () => {
+        contactSalesModal.style.display = 'block';
+      });
+      // Add close logic for the cancel button
+      const cancelBtn = contactSalesModal.querySelector('.btn-cancel');
+      if (cancelBtn) {
+        cancelBtn.addEventListener('click', () => {
+          contactSalesModal.style.display = 'none';
+        });
+      }
+    }
+    </script>
 </body>
 </html>
