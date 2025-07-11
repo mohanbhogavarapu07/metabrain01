@@ -5,6 +5,7 @@
   <title>Metabrain chat</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="main.css">
+  <link rel="stylesheet" href="styles1.css">
   <!-- Add Recharts library -->
   <script src="https://cdn.jsdelivr.net/npm/recharts@2.7.2/umd/Recharts.min.js"></script>
   <script src="https://unpkg.com/react@17/umd/react.production.min.js"></script>
@@ -242,11 +243,10 @@
           </span>
           <span>Talk with Analyst</span>
         </a>
-        <a href="report.html" class="nav-item" id="savedReportsNav">
+        <a href="#" class="nav-item" id="savedReportsNav">
           <span class="icon">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="#7A8CA6" xmlns="http://www.w3.org/2000/svg">
               <path d="M0.5 4.63524V15.3651C0.501387 15.7662 0.613983 16.159 0.825267 16.4999C1.21885 17.1408 1.91638 17.532 2.66845 17.5336H15.8848C16.8792 17.5336 17.7462 16.8573 17.9882 15.8928L19.4338 10.9454C19.7263 9.78408 19.0219 8.60555 17.8605 8.31311C17.8191 8.30266 17.7773 8.29344 17.7352 8.28546V7.52651C17.7352 6.32891 16.7644 5.35806 15.5668 5.35806H10.6989C10.3608 5.36876 10.0605 5.14353 9.97611 4.81595L9.80263 4.09313C9.55782 3.14471 8.7076 2.47816 7.72815 2.4668H2.66845C1.47085 2.4668 0.5 3.43764 0.5 4.63524ZM1.94563 4.63524C1.94563 4.23604 2.26925 3.91243 2.66845 3.91243H7.72815C8.06626 3.90173 8.36657 4.12696 8.45097 4.45454L8.62444 5.17736C8.86926 6.12578 9.71948 6.79233 10.6989 6.80369H15.5668C15.966 6.80369 16.2896 7.12731 16.2896 7.52651V8.24932H5.15493C4.23026 8.24268 3.40311 8.82314 3.09491 9.69495L1.94563 13.1789L1.94563 4.63524Z" fill="#5A6E7C"/>
-              
             </svg>
           </span>
           <span>Saved Reports</span>
@@ -270,99 +270,112 @@
 
   <!-- Main Content -->
   <main class="main-content" id="mainContent">
-    
-    <div class="top-bar">
-      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="#1A2340" xmlns="http://www.w3.org/2000/svg">
-          <rect x="4" y="5" width="16" height="2" rx="1"/>
-          <rect x="4" y="11" width="16" height="2" rx="1"/>
-          <rect x="4" y="17" width="16" height="2" rx="1"/>
-        </svg>
-      </button>
-      <div id="currentChatTitle" class="chat-title-text">Ideation Studio</div>
-      <a id="infoIconBtn" href="images/Report.docx" download style="display: flex; align-items: center; margin-left: 780px; cursor: pointer;">
-        <svg width="25" height="25" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <circle cx="16" cy="16" r="14" stroke="#4285F4" stroke-width="2.5" fill="none"/>
-          <rect x="15" y="12" width="2" height="10" rx="1" fill="#4285F4"/>
-          <rect x="15" y="9" width="2" height="2" rx="1" fill="#4285F4"/>
-        </svg>
-      </a>
-      <div class="toggle">
-        <span class="toggle-text">Ideation Studio</span>
-        <label class="toggle-switch">
-          <input type="checkbox" id="ideationToggle">
-          <span class="toggle-slider"></span>
-        </label>
-      </div>
-      <button class="new-chat-btn">
-        <svg width="18" height="18" fill="none" stroke="white" stroke-width="2">
-          <line x1="9" y1="4" x2="9" y2="14"/>
-          <line x1="4" y1="9" x2="14" y2="9"/>
-        </svg>
-        New Chat
-      </button>
-    </div>
-    <div class="container">
-
-      <div class="questions-grid" style="display: grid;">
-        <div class="question-card" data-question="Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale"><p>Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale</p></div>
-        <div class="question-card" data-question="What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?"><p>What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?</p></div>
-        <div class="question-card" data-question="Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?"><p>Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?</p></div>
-        <div class="question-card" data-question="How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?"><p>How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?</p></div>
-        <div class="question-card" data-question="What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?"><p>What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?</p></div>
-        <div class="question-card" data-question="Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?"><p>Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?</p></div>
-      </div>
-      <!-- Update the chat-section styling -->
-      <div class="chat-section" style="display: flex;">
-        <div class="chat-messages" id="chatMessages">
-          <!-- Chat messages will be displayed here -->
+    <div id="mainContainer">
+      <div class="top-bar">
+        <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="#1A2340" xmlns="http://www.w3.org/2000/svg">
+            <rect x="4" y="5" width="16" height="2" rx="1"/>
+            <rect x="4" y="11" width="16" height="2" rx="1"/>
+            <rect x="4" y="17" width="16" height="2" rx="1"/>
+          </svg>
+        </button>
+        <div id="currentChatTitle" class="chat-title-text">Ideation Studio</div>
+        <a id="infoIconBtn" href="images/Report.docx" download style="display: flex; align-items: center; margin-left: 650px; cursor: pointer;">
+          <svg width="25" height="25" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="14" stroke="#4285F4" stroke-width="2.5" fill="none"/>
+            <rect x="15" y="12" width="2" height="10" rx="1" fill="#4285F4"/>
+            <rect x="15" y="9" width="2" height="2" rx="1" fill="#4285F4"/>
+          </svg>
+        </a>
+        <div class="toggle">
+          <span class="toggle-text">Ideation Studio</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="ideationToggle">
+            <span class="toggle-slider"></span>
+          </label>
         </div>
-        <div class="chat-input-container">
-          <div class="chat-input-message" id="chatInputMessage">
-            What insights you are looking for today?
+        <button class="new-chat-btn">
+          <svg width="18" height="18" fill="none" stroke="white" stroke-width="2">
+            <line x1="9" y1="4" x2="9" y2="14"/>
+            <line x1="4" y1="9" x2="14" y2="9"/>
+          </svg>
+          New Chat
+        </button>
+      </div>
+      <div class="container" style="margin:0; padding:0; min-height:0; display:flex; flex-direction:column; justify-content:flex-start;">
+
+        <div class="questions-grid" style="display: grid; margin-bottom: 0; padding-bottom: 0;">
+          <div class="question-card" data-question="Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale"><p>Simulate a scenario where U.S. tariffs on Mexican and Canadian automotive imports remain active for six months. Analyze alternative sourcing for airbags based on the following quantitative metrics: updated landed cost (factoring tariff rate, FX adjustment), supplier risk (political instability, non-tariff barriers), and supplier viability (capacity, delivery history). Recommend a prescriptive sourcing decision with an explanatory rationale</p></div>
+          <div class="question-card" data-question="What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?"><p>What patterns in EV adoption can inform prctive demand forecasting and inventory optimization?</p></div>
+          <div class="question-card" data-question="Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?"><p>Which emerging autonomous vehicle technology could signinficantly disrupt our current bussiness model?</p></div>
+          <div class="question-card" data-question="How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?"><p>How can AI-driven insights enhance the efficiency and accuracy of our autonomous vehicle testing process?</p></div>
+          <div class="question-card" data-question="What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?"><p>What digital retail innovations could most effectively differentiate our brand in a competitive automotive market?</p></div>
+          <div class="question-card" data-question="Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?"><p>Can we compare the total cost of the airbags coponent for different models with the potential revenue streams?</p></div>
+        </div>
+        <!-- Update the chat-section styling -->
+        <div class="chat-section" style="display: flex; margin-top: 0; padding-top: 0;">
+          <div class="chat-messages" id="chatMessages">
+            <!-- Chat messages will be displayed here -->
           </div>
-          <textarea class="chat-input" id="chatInput" placeholder="Type your question here.."></textarea>
-          <div class="input-actions">
-            <div class="left-actions">
-              <button class="action-btn" title="Upload file" id="uploadFileBtn">
-                <svg width="20" height="20" fill="none" stroke="#0066B3" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M12 16V4M8 8l4-4 4 4M4 20h16"/>
-                </svg>
-              </button>
-              <button class="action-btn" title="Voice input" id="voiceInputBtn">
-                <svg width="20" height="20" fill="none" stroke="#0066B3" stroke-width="2" viewBox="0 0 24 24">
-                  <rect x="9" y="2" width="6" height="12" rx="3"/>
-                  <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
-                  <line x1="12" y1="22" x2="12" y2="18"/>
-                  <line x1="8" y1="22" x2="16" y2="22"/>
-                </svg>
-              </button>
+          <div class="chat-input-container">
+            <div class="chat-input-message" id="chatInputMessage">
+              <h2 style="font-size: 2rem; font-weight: 700; color: #1A2340; text-align: center; margin: 12px 0 8px 0;">What insights you are looking for today?</h2>
             </div>
-            <div class="right-actions">
-              <div class="plus-dropdown">
-                <button class="plus-btn" id="plusBtn"><span id="plusBtnLabel">Plus</span> ▼</button>
-                <div class="plus-menu" id="plusMenu" style="display:none;">
-                  <div class="plus-item" data-value="Plus">
-                    <svg width="20" height="20" fill="none" stroke="#0096D6" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-                    Plus
-                  </div>
-                  <div class="plus-item" data-value="Play">
-                    <svg width="20" height="20" fill="none" stroke="#E04A1F" stroke-width="2" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
-                    Play
-                  </div>
-                  <div class="plus-item" data-value="Ideation">
-                    <svg width="20" height="20" fill="none" stroke="#1A8FE3" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
-                    Ideation
+            <textarea class="chat-input" id="chatInput" placeholder="Type your question here.."></textarea>
+            <div class="input-actions">
+              <div class="left-actions">
+                <button class="action-btn" title="Upload file" id="uploadFileBtn">
+                  <svg width="20" height="20" fill="none" stroke="#0066B3" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M12 16V4M8 8l4-4 4 4M4 20h16"/>
+                  </svg>
+                </button>
+                <button class="action-btn" title="Voice input" id="voiceInputBtn">
+                  <svg width="20" height="20" fill="none" stroke="#0066B3" stroke-width="2" viewBox="0 0 24 24">
+                    <rect x="9" y="2" width="6" height="12" rx="3"/>
+                    <path d="M5 10v2a7 7 0 0 0 14 0v-2"/>
+                    <line x1="12" y1="22" x2="12" y2="18"/>
+                    <line x1="8" y1="22" x2="16" y2="22"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="right-actions">
+                <div class="plus-dropdown">
+                  <button class="plus-btn" id="plusBtn"><span id="plusBtnLabel">Plus</span> ▼</button>
+                  <div class="plus-menu" id="plusMenu" style="display:none;">
+                    <div class="plus-item" data-value="Plus">
+                      <svg width="20" height="20" fill="none" stroke="#0096D6" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                      Plus
+                    </div>
+                    <div class="plus-item" data-value="Play">
+                      <svg width="20" height="20" fill="none" stroke="#E04A1F" stroke-width="2" viewBox="0 0 24 24"><polygon points="5,3 19,12 5,21"/></svg>
+                      Play
+                    </div>
+                    <div class="plus-item" data-value="Ideation">
+                      <svg width="20" height="20" fill="none" stroke="#1A8FE3" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>
+                      Ideation
+                    </div>
                   </div>
                 </div>
+                <button class="send-btn" title="Send message" id="sendMessageBtn">
+                  <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                  </svg>
+                </button>
               </div>
-              <button class="send-btn" title="Send message" id="sendMessageBtn">
-                <svg width="20" height="20" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
-                  <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
-                </svg>
-              </button>
             </div>
           </div>
+        </div>
+      </div>
+    </div>
+    <div id="savedReportsSection" style="display:none;">
+      <div class="dashboard-wrapper" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 80vh; width: 100%;">
+        <div class="top-bar" style="width: 100%; display: flex; flex-direction: column; align-items: center; background: transparent; box-shadow: none; padding: 32px 0 16px 0;">
+          <span style="font-size: 2rem; font-weight: 700; color: #1A2340; margin-bottom: 18px; text-align: center;">Saved Reports</span>
+        </div>
+        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; max-width: 420px; background: #fff; border-radius: 16px; box-shadow: 0 2px 12px rgba(53,120,229,0.07); padding: 48px 32px 40px 32px;">
+          <div style="font-size: 1.35rem; font-weight: 600; color: #1A2340; margin-bottom: 8px; text-align: center;">No Valid Reports Yet</div>
+          <div style="color: #7A8CA6; font-size: 1.08rem; margin-bottom: 24px; text-align: center;">Start your first assessment to see reports here</div>
+          <button style="background: #3578e5; color: #fff; border: none; border-radius: 8px; padding: 12px 28px; font-size: 1.08rem; font-weight: 600; cursor: pointer; box-shadow: 0 1px 4px rgba(53,120,229,0.08);">Create First Report</button>
         </div>
       </div>
     </div>
@@ -469,7 +482,6 @@
       </div>
     </div>
   </div>
-
 
   <script type="module">
     import { createChat, getAllChats, getChatsByUserId, deleteChat } from './chatApi.js';
@@ -687,8 +699,8 @@
 
     // Loaders for main content - Moved to this script block
     function loadMainPage() {
+      document.getElementById('savedReportsSection').style.display = 'none';
       document.querySelector('.container').style.display = '';
-      document.getElementById('savedReportsSection')?.remove();
       document.getElementById('projectSection')?.remove();
       document.getElementById('actionTwinSection')?.remove();
     }
@@ -865,7 +877,15 @@
         // Add click handler for saved reports
         document.getElementById('savedReportsNav').addEventListener('click', function(e) {
             e.preventDefault();
-            window.location.href = 'report.html';
+            // Hide all other sections
+            document.querySelector('.container').style.display = 'none';
+            document.getElementById('projectSection')?.remove();
+            document.getElementById('actionTwinSection')?.remove();
+            // Show Saved Reports section
+            document.getElementById('savedReportsSection').style.display = '';
+            // Update nav active state
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            this.classList.add('active');
         });
 
         // Add click handlers for saved report buttons
@@ -2304,7 +2324,15 @@
     // Add click handler for Saved Reports navigation
     document.getElementById('savedReportsNav').addEventListener('click', function(e) {
         e.preventDefault();
-        window.location.href = 'report.html';
+        // Hide all other sections
+        document.querySelector('.container').style.display = 'none';
+        document.getElementById('projectSection')?.remove();
+        document.getElementById('actionTwinSection')?.remove();
+        // Show Saved Reports section
+        document.getElementById('savedReportsSection').style.display = '';
+        // Update nav active state
+        document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+        this.classList.add('active');
     });
 
     // Update navigation event handlers
@@ -2314,6 +2342,7 @@
         if (actionTwinNav) {
             actionTwinNav.addEventListener('click', function(e) {
                 e.preventDefault();
+                document.getElementById('savedReportsSection').style.display = 'none';
                 loadActionTwinPage();
                 updateActiveNav(this);
             });
@@ -2324,6 +2353,7 @@
         if (talkAnalystNav) {
             talkAnalystNav.addEventListener('click', function(e) {
                 e.preventDefault();
+                document.getElementById('savedReportsSection').style.display = 'none';
                 talkAnalystModal.style.display = 'flex';
                 updateActiveNav(this);
             });
@@ -2334,6 +2364,11 @@
         if (projectNav) {
             projectNav.addEventListener('click', function(e) {
                 e.preventDefault();
+                document.getElementById('savedReportsSection').style.display = 'none';
+                actionTwinModal.style.display = 'none';
+                talkAnalystModal.style.display = 'none';
+                addProjectModal.style.display = 'none';
+                manageInviteesModal.style.display = 'none';
                 loadProject();
                 updateActiveNav(this);
             });
@@ -2344,7 +2379,15 @@
         if (savedReportsNav) {
             savedReportsNav.addEventListener('click', function(e) {
                 e.preventDefault();
-                window.location.href = 'report.html';
+                // Hide all other sections
+                document.querySelector('.container').style.display = 'none';
+                document.getElementById('projectSection')?.remove();
+                document.getElementById('actionTwinSection')?.remove();
+                // Show Saved Reports section
+                document.getElementById('savedReportsSection').style.display = '';
+                // Update nav active state
+                document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+                this.classList.add('active');
             });
         }
 

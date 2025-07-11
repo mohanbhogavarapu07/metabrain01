@@ -1,4 +1,4 @@
-/* === Root Variables === */
+=== Root Variables ===
 :root {
   --sidebar-bg:linear-gradient(135deg, #F8FAFF 0%, #EAF3FF 100%);
   --sidebar-border: #e5e7eb;
@@ -49,7 +49,7 @@ body {
 /* --- Layout Flexbox --- */
 .dashboard-wrapper {
   display: flex;
-  height: 100vh; /* Use height to constrain for scrolling */
+  height: auto; /* Use height to constrain for scrolling */
   overflow: hidden; /* Hide any overflow outside the main flex children */
 }
 
@@ -139,13 +139,16 @@ body {
 
 /* === Sidebar === */
 .sidebar {
-  width: 270px;
-  flex-shrink: 0;
+  width: 270px !important;
+  position: fixed !important;
+  left: 0;
+  top: 0;
+  height: 100vh;
+  z-index: 1000;
   background: var(--sidebar-bg);
-   box-shadow: 2px 0 16px 0 rgba(0, 102, 179, 0.04);
+  box-shadow: 2px 0 16px 0 rgba(0, 102, 179, 0.04);
   border-right: 1px solid var(--sidebar-border);
   display: flex;
-  height: 100vh;
   flex-direction: column;
   padding: 0 0 2rem 0;
   overflow-y: auto;
@@ -255,8 +258,8 @@ body {
 
 /* === Main Content === */
 .main-content {
- margin-left: 0px;
-  width: calc(100% - 270px);
+  margin-left: 270px !important;
+  width: calc(100% - 270px) !important;
   height: 100vh;
   display: flex;
   flex-direction: column;
