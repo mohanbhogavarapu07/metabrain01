@@ -737,13 +737,88 @@
         const verifyCodeBtn = document.getElementById('verifyCodeBtn');
         const verificationErrorMsg = document.getElementById('verificationErrorMsg');
         let signUpAttempt = null;
+
+        // Backend API functions
+        async function createUserInBackend(userData) {
+            try {
+                console.log('Sending user data to backend:', userData);
+                
+                const response = await fetch('https://new-tvs-motors-api-dev.eficensittest.com/users/create_user/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(userData),
+                    timeout: 10000 // 10 second timeout
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('Backend response error:', response.status, errorText);
+                    throw new Error(`Backend signup failed: ${response.status} - ${errorText}`);
+                }
+
+                const data = await response.json();
+                console.log('Backend user created:', data);
+                return data;
+            } catch (error) {
+                console.error('Backend signup error:', error);
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    throw new Error('Backend server is not responding. Please try again later.');
+                }
+                throw error;
+            }
+        }
+
         signupForm.addEventListener('submit', async (event) => {
             event.preventDefault();
             errorMsg.textContent = '';
             verificationErrorMsg.textContent = '';
             if (!validateStep(3)) return;
             const data = collectFormData();
+            
             try {
+                // Create user in backend first with complete schema
+                const backendUserData = {
+                    email: data.email,
+                    name: data.name,
+                    password: data.password,
+                    companyname: data.company,
+                    position: data.position,
+                    phonenumber: data.contact,
+                    budget: data.budget,
+                    address: data.address,
+                    // Additional fields from schema
+                    org_id: null,
+                    role: null,
+                    datasets: null,
+                    industry: [],
+                    timeframe: "1-3 months", // default value
+                    primaryRole: "Other", // default value
+                    saveSession: null,
+                    achieveToday: "Other", // default value
+                    datasetsOther: null,
+                    industryOther: null,
+                    challengeFocus: "Other", // default value
+                    expirationDate: null,
+                    recommendAgent: null,
+                    timeframeOther: null,
+                    preferredOutput: "Other", // default value
+                    primaryRoleOther: null,
+                    achieveTodayOther: null,
+                    challengeFocusOther: null,
+                    teamOrIndividualUse: "Individual", // default value
+                    preferredOutputOther: null,
+                    teamOrIndividualUseOther: null
+                };
+                
+                console.log('Creating user in backend...');
+                await createUserInBackend(backendUserData);
+                console.log('Backend user created successfully');
+
+                // Then create user in Clerk
+                console.log('Creating user in Clerk...');
                 signUpAttempt = await clerk.client.signUp.create({
                     emailAddress: data.email,
                     password: data.password,
@@ -756,7 +831,22 @@
                         address: data.address
                     }
                 });
+
                 if (signUpAttempt.status === 'complete') {
+                    console.log('Both backend and Clerk signup completed');
+                    // Fetch backend user record and store user_id
+                    try {
+                        const userRes = await fetch(`https://new-tvs-motors-api-dev.eficensittest.com/users/get_user/${encodeURIComponent(data.email)}`);
+                        if (userRes.ok) {
+                            const userJson = await userRes.json();
+                            if (userJson && userJson.id) {
+                                localStorage.setItem('user_id', userJson.id);
+                                console.log('Stored backend user_id:', userJson.id);
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Failed to fetch/store backend user_id:', e);
+                    }
                     window.location.href = './main.html';
                 } else {
                     await signUpAttempt.prepareEmailAddressVerification({ strategy: 'email_code' });
@@ -767,7 +857,11 @@
                 }
             } catch (err) {
                 console.error('Signup error:', err);
-                errorMsg.textContent = err.errors?.[0]?.message || 'Signup error. Please try again.';
+                if (err.message && err.message.includes('Backend signup failed')) {
+                    errorMsg.textContent = 'Backend registration failed. Please try again.';
+                } else {
+                    errorMsg.textContent = err.errors?.[0]?.message || 'Signup error. Please try again.';
+                }
             }
         });
         verifyCodeBtn.addEventListener('click', async (event) => {

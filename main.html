@@ -1550,7 +1550,7 @@
           // Create user message element
           const userMessageData = {
             text: messageText,
-            sender: 'user',
+            sender: getBackendUserId(),
             createdAt: new Date().toISOString()
           };
           
@@ -1562,7 +1562,7 @@
           // Create or update chat
             if (!currentChatId) {
                 const chatData = {
-              user_id: getUserData()?.id || 'default',
+              user_id: getBackendUserId(),
               title: messageText.length > 50 ? messageText.substring(0, 50) + '...' : messageText,
                     createdAt: new Date().toISOString(),
                     updatedAt: new Date().toISOString()
@@ -1580,7 +1580,7 @@
           // Create user message in database
             const messageData = {
                 chat_id: currentChatId,
-                sender: 'user',
+                sender: getBackendUserId(),
                 text: messageText,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString()
@@ -1740,10 +1740,9 @@
     // Update loadUserChats function
     async function loadUserChats() {
       try {
-        const userData = getUserData();
-        if (!userData) return;
-
-        const chats = await getChatsByUserId(userData.id);
+        const userId = getBackendUserId();
+        if (!userId) return;
+        const chats = await getChatsByUserId(userId);
         
         // Update sidebar with chat history
         const chatHistory = document.createElement('div');
@@ -1917,7 +1916,9 @@
                         
                         // Process all messages at once for better performance
                         sortedMessages.forEach(msg => {
-                            const messageElement = createMessageElement(msg, msg.sender === 'user');
+                            // Determine if sender is user or bot
+                            const isUser = msg.sender === getBackendUserId();
+                            const messageElement = createMessageElement(msg, isUser);
                             fragment.appendChild(messageElement);
                         });
                         
@@ -2431,6 +2432,11 @@
         };
       }
     }, 0);
+
+    // Helper to get backend user_id from localStorage
+    function getBackendUserId() {
+      return localStorage.getItem('user_id') || 'default';
+    }
   </script>
   <!-- Place this script at the end of the body -->
   <script>

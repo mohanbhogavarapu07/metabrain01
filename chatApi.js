@@ -1,5 +1,5 @@
 // Chat API functions
-const API_BASE_URL = 'https://tvs-motors-api.eficensittest.com'; // Replace with your actual API base URL
+const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com'; // Updated to correct backend
 
 // Get all chats
 async function getAllChats() {

@@ -1,5 +1,5 @@
 // Message API functions
-const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com/'; // Replace with your actual API base URL
+const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com'; // No trailing slash to avoid double slashes
 
 // Get all messages
 async function getAllMessages() {
@@ -38,16 +38,28 @@ async function getMessagesByChatId(chatId) {
 }
 
 // Create Message
+// messageData should include: sender, text, chat_id
 async function createMessage(messageData) {
     try {
+        // Validate required fields
+        if (!messageData.sender || !messageData.text || !messageData.chat_id) {
+            throw new Error('Missing required fields: sender, text, or chat_id');
+        }
         const response = await fetch(`${API_BASE_URL}/message/create_message/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(messageData)
+            body: JSON.stringify({
+                sender: messageData.sender,
+                text: messageData.text,
+                chat_id: messageData.chat_id
+            })
         });
-        if (!response.ok) throw new Error('Failed to create message');
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`Failed to create message: ${response.status} - ${errorText}`);
+        }
         return await response.json();
     } catch (error) {
         console.error('Error creating message:', error);
@@ -55,9 +67,9 @@ async function createMessage(messageData) {
     }
 }
 
-// Update User (Based on provided endpoint, potentially misnamed) - Assuming it's for message-related user info or a typo
+// Update User Message Info (if this is actually for updating a message, rename accordingly)
 async function updateUserMessageInfo(userId, updateData) {
-     console.warn("Using endpoint PUT /message/users/{user_id} - Assuming this updates user info related to messages or was a typo for updating a message.");
+    console.warn("Using endpoint PUT /message/users/{user_id} - Assuming this updates user info related to messages or was a typo for updating a message.");
     try {
         const response = await fetch(`${API_BASE_URL}/message/users/${userId}`, {
             method: 'PUT',

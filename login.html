@@ -146,8 +146,6 @@
 
 
     <script type="module">
-        import { getUserByEmail, loginUser } from './userApi.js';
-
         // Store user credentials in localStorage after successful signup
         function storeUserCredentials(email, password) {
             const credentials = {
@@ -163,13 +161,12 @@
             return credentials ? JSON.parse(credentials) : null;
         }
 
-        window.handleLogin = async function(event) {
+        // Remove backend login logic and use only Clerk for authentication
+        document.getElementById('loginForm').addEventListener('submit', async function(event) {
             event.preventDefault();
-            
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             let errorMsg = document.getElementById('loginErrorMsg');
-            
             if (!errorMsg) {
                 errorMsg = document.createElement('div');
                 errorMsg.id = 'loginErrorMsg';
@@ -178,74 +175,25 @@
                 errorMsg.style.fontWeight = '600';
                 document.getElementById('loginForm').appendChild(errorMsg);
             }
-
             if (!email || !password) {
                 errorMsg.textContent = 'Please enter both email and password.';
                 return;
             }
-
             try {
-                console.log('Attempting login with email:', email);
-                
-                // Call your backend login endpoint
-                const loginResponse = await loginUser(email, password);
-                console.log('Login response:', loginResponse);
-                
-                // Handle successful login
-                if (loginResponse && loginResponse.success !== false) {
-                    // Store user data in session storage
-                    const userData = {
-                        id: loginResponse.user?.id || loginResponse.id,
-                        email: loginResponse.user?.email || loginResponse.email || email,
-                        name: loginResponse.user?.name || loginResponse.name || email.split('@')[0],
-                        org_id: loginResponse.user?.org_id || loginResponse.org_id || 'default_org',
-                        role: loginResponse.user?.role || loginResponse.role || 'user',
-                        token: loginResponse.token || loginResponse.access_token // Store token if provided
-                    };
-                    
-                    console.log('Storing user data:', userData);
-                    sessionStorage.setItem('user', JSON.stringify(userData));
-                    
-                    // If remember me is checked, store in localStorage
-                    if (document.getElementById('remember').checked) {
-                        localStorage.setItem('user', JSON.stringify(userData));
-                    }
-                    
-                    // Redirect to main page
+                // Clerk login
+                const signIn = await window.Clerk.client.signIn.create({ identifier: email, password });
+                if (signIn.status === 'complete') {
                     window.location.href = './main.html';
+                } else if (signIn.status === 'needs_first_factor' || signIn.status === 'needs_second_factor') {
+                    errorMsg.textContent = 'Multi-factor authentication required. Please complete all steps.';
                 } else {
-                    console.log('Login failed:', loginResponse);
-                    errorMsg.textContent = loginResponse.message || 'Invalid email or password.';
+                    errorMsg.textContent = 'Sign in not complete. Please check your credentials.';
                 }
-            } catch (error) {
-                console.error('Login error:', error);
-                
-                // Handle different types of errors
-                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                    errorMsg.textContent = 'Unable to connect to the server. Please try again later.';
-                } else if (error.response) {
-                    // Handle API error responses
-                    switch (error.response.status) {
-                        case 404:
-                            errorMsg.textContent = 'User not found. Please check your email.';
-                            break;
-                        case 401:
-                            errorMsg.textContent = 'Invalid email or password.';
-                            break;
-                        case 400:
-                            errorMsg.textContent = 'Invalid request. Please check your input.';
-                            break;
-                        case 500:
-                            errorMsg.textContent = 'Server error. Please try again later.';
-                            break;
-                        default:
-                            errorMsg.textContent = 'An error occurred. Please try again.';
-                    }
-                } else {
-                    errorMsg.textContent = 'Invalid email or password.';
-                }
+            } catch (err) {
+                console.error('Login error:', err);
+                errorMsg.textContent = err.errors?.[0]?.message || 'Login error. Please try again.';
             }
-        };
+        });
 
         // Toggle password visibility
         document.querySelector('.toggle-password').addEventListener('click', function() {
@@ -451,15 +399,37 @@
     const loginForm = document.getElementById('loginForm');
     const errorMsg = document.getElementById('loginErrorMsg');
 
+    // Backend API functions
+    // Remove any backend login functions
+    // Remove: async function loginUserInBackend ...
+    // Remove: any calls to loginUserInBackend
+
     loginForm.addEventListener('submit', async (event) => {
       event.preventDefault();
       errorMsg.textContent = '';
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value.trim();
+      
       try {
+        // Login to Clerk
+        console.log('Logging in to Clerk...');
         const signIn = await clerk.client.signIn.create({ identifier: email, password });
         console.log('SignIn result:', signIn); // DEBUG: See signIn object
         if (signIn.status === 'complete') {
+          console.log('Clerk login completed');
+          // Fetch backend user record and store user_id
+          try {
+            const userRes = await fetch(`https://new-tvs-motors-api-dev.eficensittest.com/users/get_user/${encodeURIComponent(email)}`);
+            if (userRes.ok) {
+              const userJson = await userRes.json();
+              if (userJson && userJson.id) {
+                localStorage.setItem('user_id', userJson.id);
+                console.log('Stored backend user_id:', userJson.id);
+              }
+            }
+          } catch (e) {
+            console.error('Failed to fetch/store backend user_id:', e);
+          }
           // Clerk automatically sets the session. Just redirect.
           window.location.href = './main.html';
         } else if (signIn.status === 'needs_first_factor' || signIn.status === 'needs_second_factor') {

@@ -1,5 +1,5 @@
 // Base URL for the API
-const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com/';
+const API_BASE_URL = 'https://new-tvs-motors-api-dev.eficensittest.com';
 
 // API endpoints
 const API_ENDPOINTS = {
@@ -8,7 +8,7 @@ const API_ENDPOINTS = {
     createUser: '/users/create_user/',
     updateUser: '/users/update_user/',
     deleteUser: '/users/delete_user/',
-    login: '/users/login/' // Add your actual login endpoint here
+    login: '/users/login/'
 };
 
 // Get all users
@@ -73,12 +73,14 @@ async function createUser(userData) {
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify(userData)
+            body: JSON.stringify(userData),
+            timeout: 15000 // 15 second timeout
         });
 
         if (!response.ok) {
-            console.error('Create user response not OK:', response.status);
-            throw { response };
+            const errorText = await response.text();
+            console.error('Create user response not OK:', response.status, errorText);
+            throw new Error(`Backend signup failed: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
@@ -86,6 +88,9 @@ async function createUser(userData) {
         return data;
     } catch (error) {
         console.error('Error creating user:', error);
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            throw new Error('Backend server is not responding. Please try again later.');
+        }
         throw error;
     }
 }
@@ -155,12 +160,14 @@ async function loginUser(email, password) {
             body: JSON.stringify({
                 email: email,
                 password: password
-            })
+            }),
+            timeout: 15000 // 15 second timeout
         });
 
         if (!response.ok) {
-            console.error('Login response not OK:', response.status);
-            throw { response };
+            const errorText = await response.text();
+            console.error('Login response not OK:', response.status, errorText);
+            throw new Error(`Backend login failed: ${response.status} - ${errorText}`);
         }
 
         const data = await response.json();
@@ -168,6 +175,9 @@ async function loginUser(email, password) {
         return data;
     } catch (error) {
         console.error('Error logging in user:', error);
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            throw new Error('Backend server is not responding. Please try again later.');
+        }
         throw error;
     }
 }
