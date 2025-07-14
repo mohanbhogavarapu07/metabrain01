@@ -1,4 +1,4 @@
-=== Root Variables ===
+/*=== Root Variables ===*/
 :root {
   --sidebar-bg:linear-gradient(135deg, #F8FAFF 0%, #EAF3FF 100%);
   --sidebar-border: #e5e7eb;
