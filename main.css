@@ -600,8 +600,8 @@ input:checked + .toggle-slider:before {
   background: white;
   padding: 0;
   border-top: 1px solid #EAF3FF;
-  width: 100%;
-  max-width: 900px;
+  
+  width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
   z-index: 1000;
@@ -2822,14 +2822,7 @@ select.form-input {
   border-top: 1px solid #EAF3FF;
 }
 
-.chat-input-message {
-  text-align: center;
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: #1A2340;
-  margin-bottom: 1rem;
-  padding: 0.5rem;
-}
+
 
 .chat-input {
   width: 100%;
